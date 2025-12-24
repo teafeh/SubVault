@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SubVault NG — No Login Required</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/modern-screenshot@4.6.7/dist/index.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+
+    <nav class="sticky top-0 z-40 bg-black/80 backdrop-blur-md px-6 py-5 flex justify-between items-center border-b border-white/5">
+        <div>
+            <h1 class="text-xl font-800 tracking-tighter italic text-emerald-500">SUBVAULT_</h1>
+        </div>
+        <div class="text-right">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Monthly Burn</p>
+            <p id="total-monthly" class="text-xl font-800 text-white">₦0</p>
+        </div>
+    </nav>
+
+    <main class="p-4 space-y-8">
+        <section>
+            <div class="flex justify-between items-center mb-4 px-1">
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Oya, Quick Add</p>
+                <span class="text-[10px] text-emerald-500 font-bold bg-emerald-500/10 px-2 py-1 rounded-full">No Login Needed</span>
+            </div>
+            <div class="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+                <div id="presets-mobile" class="flex gap-3">
+                    </div>
+            </div>
+        </section>
+
+        <section id="capture-area" class="bg-black">
+            <div id="vault-grid" class="bento-grid">
+                </div>
+            
+            <div id="empty-state" class="py-24 text-center">
+                <div class="w-16 h-16 bg-emerald-500/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/10">
+                    <span class="iconify w-8 h-8 text-emerald-500/20" data-icon="ph:stack-simple"></span>
+                </div>
+                <p class="text-sm font-bold text-slate-500">Your vault is empty</p>
+            </div>
+        </section>
+    </main>
+
+    <div class="fixed bottom-28 right-6 z-50">
+        <button onclick="toggleAIChat()" class="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-black shadow-2xl active-tap">
+            <span class="iconify w-7 h-7" data-icon="ph:magic-wand-fill"></span>
+        </button>
+    </div>
+
+    <div id="ai-chat" class="fixed bottom-44 left-6 right-6 z-50 hidden">
+        <div class="bg-[#111] border border-emerald-500/40 rounded-3xl p-4 shadow-2xl">
+            <input type="text" id="ai-input" placeholder="Say 'Add DSTV 25k'..." 
+                class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white focus:outline-none focus:border-emerald-500"
+                onkeypress="handleAICommand(event)">
+            <p id="ai-feedback" class="text-[10px] text-center mt-2 text-emerald-500 font-bold uppercase"></p>
+        </div>
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 h-24 bottom-dock z-50 px-8 flex items-center justify-between">
+        <button onclick="exportGrid()" class="flex flex-col items-center gap-1 text-slate-500 active-tap">
+            <span class="iconify w-6 h-6" data-icon="ph:export-bold"></span>
+            <span class="text-[9px] font-bold uppercase">Share</span>
+        </button>
+
+        <button onclick="toggleModal(true)" class="bg-white text-black h-16 w-16 rounded-full flex items-center justify-center shadow-xl active-tap -translate-y-4 border-4 border-black">
+            <span class="iconify w-7 h-7" data-icon="ph:plus-bold"></span>
+        </button>
+
+        <button onclick="window.location.reload()" class="flex flex-col items-center gap-1 text-slate-500 active-tap">
+            <span class="iconify w-6 h-6" data-icon="ph:arrow-counter-clockwise-bold"></span>
+            <span class="text-[9px] font-bold uppercase">Sync</span>
+        </button>
+    </div>
+
+    <div id="modal" class="fixed inset-0 bg-black/95 z-[60] hidden flex items-end">
+        <div class="bg-[#111] w-full rounded-t-[2.5rem] p-8 pb-12 animate-slide-up border-t border-white/10">
+            <div class="w-12 h-1.5 bg-white/10 mx-auto mb-8 rounded-full" onclick="toggleModal(false)"></div>
+            <h2 class="text-2xl font-800 mb-6 italic tracking-tighter">NEW_SUB_</h2>
+            <form id="sub-form" class="space-y-4">
+                <input type="text" id="name" required placeholder="Name (e.g. Netflix)" class="w-full bg-white/5 p-5 rounded-2xl border border-white/5 text-white">
+                <div class="flex gap-3">
+                    <input type="number" id="price" required placeholder="Price (₦)" class="flex-1 bg-white/5 p-5 rounded-2xl border border-white/5 text-white">
+                    <select id="cycle" class="bg-white/5 p-5 rounded-2xl border border-white/5 text-white">
+                        <option value="1">Monthly</option>
+                        <option value="12">Yearly</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-emerald-500 py-5 rounded-2xl font-800 text-black mt-4 active-tap">ADD TO VAULT</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="./js/script.js"></script>
+</body>
+</html>

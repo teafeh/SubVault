@@ -1,0 +1,47 @@
+ body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #000000; /* OLED Black */
+            color: white; 
+            padding-bottom: 120px; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .sub-card {
+            background: #111111;
+            border: 1px solid #222;
+            border-radius: 24px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            aspect-ratio: 1/1;
+            transition: transform 0.2s;
+        }
+
+        .sub-card.wide {
+            grid-column: span 2;
+            aspect-ratio: 2/0.9;
+        }
+
+        .bottom-dock {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid #222;
+        }
+
+        /* Prevent auto-zoom on mobile */
+        input, select { font-size: 16px !important; }
+
+        .active-tap:active { transform: scale(0.92); }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .animate-slide-up { animation: slideUp 0.3s ease-out; }
