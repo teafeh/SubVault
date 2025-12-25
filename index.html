@@ -1,80 +1,541 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SubVault NG — Pro Editor</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>SubVault — Liquid Protocol v1.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/modern-screenshot@4.6.7/dist/index.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
-   <link rel="stylesheet" href="./css/styles.css">
-</head>
-<body class="flex flex-col">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --accent: #10b981;
+        --bg: #000;
+      }
+      * {
+        -webkit-tap-highlight-color: transparent;
+        outline: none;
+        -webkit-touch-callout: none;
+        user-select: none;
+      }
+      body {
+        background: var(--bg);
+        color: #fff;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        overflow: hidden;
+        height: 100dvh;
+      }
 
-    <header class="h-20 px-6 flex justify-between items-center border-b border-white/5 shrink-0">
-        <h1 class="text-xl font-800 tracking-tighter italic text-emerald-500">SUBVAULT_</h1>
-        <div class="text-right">
-            <p class="text-[9px] font-bold text-slate-500 uppercase">Monthly Burn</p>
-            <p id="total-monthly" class="text-lg font-800">₦0</p>
+      #scroll-container {
+        height: calc(100dvh - 200px);
+        overflow-y: auto;
+        padding-bottom: 120px;
+      }
+      #scroll-container::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* THE BUBBLING PLUS BUTTON */
+      .liquid-plus {
+        position: relative;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .liquid-plus::after {
+        content: "";
+        position: absolute;
+        inset: -4px;
+        border-radius: 26px;
+        background: linear-gradient(45deg, #10b981, transparent, #10b981);
+        filter: blur(8px);
+        opacity: 0.5;
+        animation: rotate 3s linear infinite;
+      }
+      @keyframes rotate {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* CARDS */
+      .asset-card {
+        background: #0d0d0f;
+        border: 1px solid #1c1c1e;
+        border-radius: 24px;
+        transition: transform 0.2s ease;
+      }
+      .asset-card:active {
+        transform: scale(0.96);
+      }
+
+      /* LIQUID TRAY */
+      .liquid-tray {
+        background: rgba(10, 10, 12, 0.7);
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+        border-top: 1px solid rgba(16, 185, 129, 0.2);
+      }
+
+      @keyframes snake {
+        0% {
+          border-image-source: linear-gradient(
+            90deg,
+            #10b981 0%,
+            transparent 50%,
+            transparent 100%
+          );
+        }
+        50% {
+          border-image-source: linear-gradient(
+            180deg,
+            transparent 0%,
+            #10b981 50%,
+            transparent 100%
+          );
+        }
+        100% {
+          border-image-source: linear-gradient(
+            270deg,
+            transparent 0%,
+            transparent 50%,
+            #10b981 100%
+          );
+        }
+      }
+      .liquid-trigger {
+        border: 1px solid;
+        border-image-slice: 1;
+        animation: snake 4s linear infinite;
+      }
+      @keyframes shimmer {
+        100% { transform: translateX(100%); }
+    }
+
+      @keyframes trayUp {
+        from {
+          transform: translateY(100%);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
+      .tray-animate {
+        animation: trayUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+    </style>
+  </head>
+  <body class="flex flex-col">
+    <header class="pt-14 pb-4 px-8 flex justify-between items-center shrink-0">
+      <div class="flex items-center gap-4">
+        <button
+          onclick="confirmWipe()"
+          class="text-slate-800 active:text-red-500 transition-colors"
+        >
+          <span class="iconify w-5 h-5" data-icon="ph:broom-bold"></span>
+        </button>
+        <div>
+          <h1 class="text-xl font-800 tracking-tighter uppercase">
+            SubVault<span class="text-emerald-500">_</span>
+          </h1>
+          <p
+            class="text-[7px] font-800 text-slate-600 uppercase tracking-[0.3em]"
+          >
+            Sovereign Protocol
+          </p>
         </div>
+      </div>
+      <div
+        id="burn-protocol"
+        class="text-right p-2 px-4 rounded-xl transition-all"
+        onclick="openWaitlist()"
+      >
+        <p id="total-monthly" class="text-xl font-800 tracking-tight">₦0</p>
+        <p
+          class="text-[7px] font-800 text-emerald-500 uppercase tracking-widest mt-0.5"
+        >
+          Aggregate Burn
+        </p>
+      </div>
     </header>
 
-    <section class="h-24 py-4 shrink-0 border-b border-white/5 overflow-hidden">
-        <div class="flex gap-4 overflow-x-auto px-6 no-scrollbar" id="presets-mobile"></div>
+    <section class="h-16 flex items-center shrink-0 overflow-hidden mb-4">
+      <div
+        class="flex gap-5 overflow-x-auto px-8 no-scrollbar"
+        id="presets-container"
+      ></div>
     </section>
 
     <main id="scroll-container">
-        <div id="capture-area" class="bg-black">
-            <div id="vault-grid" class="bento-grid"></div>
-            <div id="empty-state" class="py-24 text-center hidden">
-                <span class="iconify w-12 h-12 text-slate-800 mx-auto" data-icon="ph:stack-simple-bold"></span>
-                <p class="text-[10px] font-bold text-slate-600 mt-2 uppercase">Vault is clear</p>
-            </div>
-        </div>
+      <div id="vault-grid" class="grid grid-cols-2 gap-4 px-8"></div>
+      <div id="empty-state" class="py-20 text-center hidden">
+        <p
+          class="text-[8px] font-bold text-slate-800 uppercase tracking-widest"
+        >
+          Protocol Clear / Standby
+        </p>
+      </div>
     </main>
 
-    <footer class="fixed bottom-0 left-0 right-0 h-24 bottom-dock z-50 px-10 flex items-center justify-between">
-        <button onclick="exportGrid()" class="flex flex-col items-center gap-1 text-slate-500 active-tap">
-            <span class="iconify w-6 h-6" data-icon="ph:export-bold"></span>
-            <span class="text-[9px] font-bold uppercase tracking-widest">Share</span>
-        </button>
+    <footer
+      class="fixed bottom-0 left-0 right-0 h-28 flex items-center justify-between px-12 pb-8"
+    >
+      <button
+        onclick="openWaitlist()"
+        class="text-slate-600 active:text-white transition-colors"
+      >
+        <span class="iconify w-6 h-6" data-icon="ph:share-fat-fill"></span>
+      </button>
 
-        <button onclick="openAddModal()" class="bg-white text-black h-16 w-16 rounded-full flex items-center justify-center shadow-xl active-tap -translate-y-4 border-4 border-black">
-            <span class="iconify w-8 h-8" data-icon="ph:plus-bold"></span>
-        </button>
+      <button
+        onclick="openAddModal()"
+        class="liquid-plus h-16 w-16 rounded-[22px] flex items-center justify-center active:scale-90 transition-transform"
+      >
+        <span
+          class="iconify w-7 h-7 text-black"
+          data-icon="ph:plus-bold"
+        ></span>
+      </button>
 
-        <button onclick="toggleAIChat()" class="flex flex-col items-center gap-1 text-slate-500 active-tap">
-            <span class="iconify w-6 h-6" data-icon="ph:magic-wand-bold"></span>
-            <span class="text-[9px] font-bold uppercase tracking-widest">Bot</span>
-        </button>
+      <button onclick="openWaitlist()" class="text-slate-600 active:text-white">
+        <span class="iconify w-6 h-6" data-icon="ph:terminal-fill"></span>
+      </button>
     </footer>
 
-    <div id="modal" class="fixed inset-0 bg-black/95 z-[60] hidden flex items-end">
-        <div class="bg-[#111] w-full rounded-t-[2.5rem] p-8 pb-12 animate-slide-up border-t border-white/10">
-            <div class="w-12 h-1.5 bg-white/10 mx-auto mb-8 rounded-full" onclick="closeModal()"></div>
-            <h2 id="modal-title" class="text-2xl font-800 mb-6 italic tracking-tighter uppercase">Add Sub</h2>
-            <form id="sub-form" class="space-y-4">
-                <input type="hidden" id="edit-id">
-                <input type="text" id="name" required placeholder="Service Name" class="w-full bg-white/5 p-5 rounded-2xl border border-white/5 text-white outline-none focus:border-emerald-500">
-                <div class="flex gap-3">
-                    <input type="number" id="price" required placeholder="Amount (₦)" class="flex-1 bg-white/5 p-5 rounded-2xl border border-white/5 text-white outline-none focus:border-emerald-500">
-                    <select id="cycle" class="bg-white/5 p-5 rounded-2xl border border-white/5 text-white">
-                        <option value="1">Mo</option>
-                        <option value="12">Yr</option>
-                    </select>
+    <div
+      id="modal"
+      class="fixed inset-0 bg-black/40 z-[100] hidden flex items-end"
+    >
+      <div class="absolute inset-0" onclick="closeModal()"></div>
+      <div
+        class="relative w-full liquid-tray rounded-t-[44px] p-10 pb-16 tray-animate"
+      >
+        <div class="w-12 h-1 bg-white/20 mx-auto mb-10 rounded-full"></div>
+        <h2
+          id="modal-title"
+          class="text-xl font-800 tracking-tight mb-8 text-center uppercase"
+        >
+          Commit_Asset
+        </h2>
+        <form id="sub-form" class="space-y-4">
+          <input type="hidden" id="edit-id" />
+          <input
+            type="text"
+            id="name"
+            required
+            placeholder="IDENTIFIER"
+            class="w-full bg-white/5 p-5 rounded-2xl border border-white/10 outline-none text-white text-xs font-800 tracking-widest focus:border-emerald-500/50"
+          />
+          <div class="flex gap-3">
+            <input
+              type="text"
+              id="price"
+              inputmode="decimal"
+              required
+              placeholder="VALUATION"
+              class="flex-1 bg-white/5 p-5 rounded-2xl border border-white/10 outline-none text-white text-xs font-800 tracking-widest focus:border-emerald-500/50"
+            />
+            <select
+              id="cycle"
+              class="bg-white/5 px-6 rounded-2xl border border-white/10 text-slate-400 text-[10px] font-800 uppercase outline-none"
+            >
+              <option value="1">Mo</option>
+              <option value="12">Yr</option>
+            </select>
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-emerald-500 py-6 rounded-2xl font-800 text-black uppercase text-xs tracking-widest active:scale-95 transition-all"
+          >
+            Execute Commit
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div
+      id="wipe-modal"
+      class="fixed inset-0 bg-black/60 backdrop-blur-md z-[120] hidden flex items-end"
+    >
+      <div class="absolute inset-0" onclick="closeWipe()"></div>
+      <div
+        class="relative w-full bg-[#080808] p-12 rounded-t-[44px] tray-animate border-t border-red-500/20 text-center"
+      >
+        <div
+          class="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6"
+        >
+          <span
+            class="iconify w-8 h-8 text-red-500"
+            data-icon="ph:warning-circle-bold"
+          ></span>
+        </div>
+        <h2 class="text-xl font-800 mb-2 uppercase tracking-tight text-white">
+          Initialize Wipe?
+        </h2>
+        <p
+          class="text-slate-500 text-[9px] mb-10 uppercase tracking-widest px-6 leading-relaxed"
+        >
+          This protocol will permanently delete all encrypted asset data from
+          the local vault.
+        </p>
+        <div class="flex flex-col gap-3">
+          <button
+            onclick="executeWipe()"
+            class="w-full bg-red-500 py-5 rounded-2xl font-800 text-white uppercase text-xs tracking-widest active:scale-95 transition-all"
+          >
+            Confirm Wipe
+          </button>
+          <button
+            onclick="closeWipe()"
+            class="w-full bg-white/5 py-5 rounded-2xl font-800 text-slate-400 uppercase text-xs tracking-widest active:scale-95 transition-all"
+          >
+            Abort
+          </button>
+        </div>
+      </div>
+    </div>
+
+ <div id="waitlist-overlay" class="fixed inset-0 z-[110] hidden flex items-end">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-3xl" onclick="closeWaitlist()"></div>
+        <div class="relative w-full bg-[#080808] p-10 rounded-t-[40px] tray-animate border-t border-emerald-500/20 text-center">
+            <div id="wait-form">
+                <div class="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <span class="iconify w-8 h-8 text-emerald-500" data-icon="ph:crown-bold"></span>
                 </div>
-                <button type="submit" class="w-full bg-emerald-500 py-5 rounded-2xl font-800 text-black mt-4 active-tap">SAVE TRACK</button>
-            </form>
+                <h2 class="text-xl font-800 mb-2 uppercase tracking-tight">Access Pro Protocol</h2>
+                <p class="text-slate-500 text-[10px] mb-8 uppercase tracking-[0.15em] px-6 leading-relaxed">Unlock Encrypted Analytics, Voice Commands, & Cross-Device Sync.</p>
+                
+                <div class="relative w-full h-24 mb-10 bg-white/[0.02] border border-white/5 rounded-[24px] overflow-hidden flex items-center justify-between px-6 grayscale opacity-30">
+    
+    <div class="flex-1 flex flex-col gap-2.5">
+        <div class="h-1.5 w-full bg-emerald-500/20 rounded-full relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent w-full -translate-x-full animate-[shimmer_2s_infinite]"></div>
+        </div>
+        <div class="h-1.5 w-3/4 bg-white/10 rounded-full"></div>
+        <div class="h-1.5 w-1/2 bg-white/10 rounded-full"></div>
+    </div>
+    
+    <div class="flex gap-3 ml-6">
+        <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/5">
+            <span class="iconify w-5 h-5 text-emerald-500/40" data-icon="ph:chart-line-up-bold"></span>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/5">
+            <span class="iconify w-5 h-5 text-emerald-500/40" data-icon="ph:lock-keyhole-bold"></span>
         </div>
     </div>
 
-    <div id="ai-chat" class="fixed bottom-28 left-4 right-4 z-50 hidden">
-        <div class="bg-[#111] border border-emerald-500/40 rounded-3xl p-4 shadow-2xl">
-            <input type="text" id="ai-input" placeholder="Say 'Add Glo 5k'..." class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-emerald-500" onkeypress="handleAICommand(event)">
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div class="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-emerald-500/20">
+            <span class="text-[8px] font-800 tracking-[0.3em] text-emerald-500/60 uppercase animate-pulse">Protocol_Locked</span>
+        </div>
+    </div>
+</div>
+
+                <input type="email" id="wait-email" placeholder="System Email Address" class="w-full bg-white/5 p-5 rounded-2xl border border-white/5 mb-4 text-center text-xs outline-none text-white font-600">
+                <button onclick="submitWaitlist()" class="w-full bg-emerald-500 py-5 rounded-2xl font-800 text-black uppercase text-xs tracking-tighter">Initialize Early Access</button>
+            </div>
+            
+            <div id="wait-success" class="hidden py-10">
+                <h3 class="text-emerald-500 font-800 text-lg mb-2 uppercase">Credential Status: Active</h3>
+                <p class="text-slate-500 text-[9px] uppercase tracking-widest">Protocol secured. We will notify your link.</p>
+                <button onclick="closeWaitlist()" class="mt-8 text-slate-600 font-bold text-[9px] uppercase tracking-widest">Back to Vault</button>
+            </div>
         </div>
     </div>
 
-    <script src="./js/script.js"></script>
-</body>
+    <script>
+      let subscriptions =
+        JSON.parse(localStorage.getItem("subvault_v15_ng")) || [];
+      const formatter = (val, full = false) => {
+        if (!full && val >= 1000)
+          return "₦" + (val / 1000).toFixed(val % 1000 === 0 ? 0 : 1) + "k";
+        return new Intl.NumberFormat("en-NG", {
+          style: "currency",
+          currency: "NGN",
+          minimumFractionDigits: 0,
+        }).format(val);
+      };
+
+      const PRESETS = [
+        { name: "GLO", url: "gloworld.com", price: 5000 },
+        { name: "Netflix", url: "netflix.com", price: 5000 },
+        { name: "YouTube", url: "youtube.com", price: 1500 },
+        { name: "Spotify", url: "open.spotify.com", price: 2000 },
+        { name: "Apple Music", url: "apple.com", price: 2000 },
+        { name: "DSTV", url: "dstv.com", price: 24500 },
+        { name: "GOTV", url: "gotvafrica.com", price: 24500 },
+      ];
+
+      window.onload = () => {
+        renderPresets();
+        renderVault();
+        checkWaitlist();
+      };
+
+      function renderPresets() {
+        document.getElementById("presets-container").innerHTML = PRESETS.map(
+          (p) => `
+                <div onclick="addSubscription('${p.name}', ${p.price}, '${p.url}')" class="shrink-0 active:scale-90 transition-transform">
+                    <div class="w-14 h-14 bg-[#0D0D0F] rounded-2xl border border-white/5 flex items-center justify-center overflow-hidden">
+                        <img src="https://icon.horse/icon/${p.url}" class="w-7 h-7">
+                    </div>
+                </div>
+            `
+        ).join("");
+      }
+
+      function renderVault() {
+        const grid = document.getElementById("vault-grid");
+        const empty = document.getElementById("empty-state");
+        if (subscriptions.length === 0) {
+          grid.innerHTML = "";
+          empty.classList.remove("hidden");
+          document.getElementById("total-monthly").innerText = "₦0";
+          return;
+        }
+        empty.classList.add("hidden");
+        grid.innerHTML = subscriptions
+          .map(
+            (s, idx) => `
+                <div class="asset-card p-6 flex flex-col justify-between aspect-square ${
+                  idx % 3 === 0 ? "col-span-2 aspect-[2/0.8]" : ""
+                }">
+                    <div class="flex justify-between items-start">
+                        <img src="https://icon.horse/icon/${
+                          s.url
+                        }" class="w-7 h-7 rounded-lg">
+                        <div class="flex gap-5">
+                            <button onclick="openEditModal(${
+                              s.id
+                            })" class="text-slate-700 active:text-white"><span class="iconify w-4 h-4" data-icon="ph:pencil-simple-fill"></span></button>
+                            <button onclick="deleteSub(${
+                              s.id
+                            })" class="text-slate-800 active:text-red-500"><span class="iconify w-4 h-4" data-icon="ph:trash-fill"></span></button>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-800 text-[8px] tracking-[0.2em] uppercase text-slate-600 mb-1">${
+                          s.name
+                        }</h4>
+                        <p onclick="togglePrice(this, ${
+                          s.price
+                        })" class="text-emerald-500 font-800 text-lg tracking-tight">${formatter(
+              s.price
+            )}</p>
+                    </div>
+                </div>
+            `
+          )
+          .join("");
+        document.getElementById("total-monthly").innerText = formatter(
+          subscriptions.reduce((acc, c) => acc + c.price, 0)
+        );
+      }
+
+      function togglePrice(el, val) {
+        el.innerText = el.innerText.includes("k")
+          ? formatter(val, true)
+          : formatter(val);
+      }
+
+      function saveAndRefresh() {
+        localStorage.setItem("subvault_v15_ng", JSON.stringify(subscriptions));
+        renderVault();
+        checkWaitlist();
+      }
+
+      function addSubscription(name, price, url = "") {
+        subscriptions.push({
+          id: Date.now(),
+          name,
+          price: parseFloat(price),
+          url: url || `${name.toLowerCase()}.com`,
+        });
+        saveAndRefresh();
+      }
+
+      function deleteSub(id) {
+        subscriptions = subscriptions.filter((s) => s.id !== id);
+        saveAndRefresh();
+      }
+
+      // WIPE PROTOCOL
+      function confirmWipe() {
+        document.getElementById("wipe-modal").classList.remove("hidden");
+      }
+      function closeWipe() {
+        document.getElementById("wipe-modal").classList.add("hidden");
+      }
+      function executeWipe() {
+        subscriptions = [];
+        saveAndRefresh();
+        closeWipe();
+      }
+
+      function openAddModal() {
+        document.getElementById("modal").classList.remove("hidden");
+      }
+      function closeModal() {
+        document.getElementById("modal").classList.add("hidden");
+      }
+
+      function openEditModal(id) {
+        const s = subscriptions.find((x) => x.id === id);
+        document.getElementById("edit-id").value = s.id;
+        document.getElementById("name").value = s.name;
+        document.getElementById("price").value = s.price;
+        openAddModal();
+      }
+
+      document.getElementById("sub-form").onsubmit = (e) => {
+        e.preventDefault();
+        let pInput = document.getElementById("price").value.toLowerCase();
+        let price = parseFloat(pInput.replace(/,/g, ""));
+        if (pInput.includes("k"))
+          price = parseFloat(pInput.replace("k", "")) * 1000;
+        if (document.getElementById("cycle").value === "12") price /= 12;
+        const id = document.getElementById("edit-id").value;
+        if (id) {
+          const idx = subscriptions.findIndex((x) => x.id == id);
+          subscriptions[idx].name = document.getElementById("name").value;
+          subscriptions[idx].price = price;
+        } else {
+          addSubscription(document.getElementById("name").value, price);
+        }
+        saveAndRefresh();
+        closeModal();
+      };
+
+      function checkWaitlist() {
+        const el = document.getElementById("burn-protocol");
+        const joined = localStorage.getItem("subvault_joined_waitlist");
+        if (subscriptions.length >= 1 && !joined)
+          el.classList.add("liquid-trigger");
+        else el.classList.remove("liquid-trigger");
+      }
+
+      function openWaitlist() {
+        document.getElementById("waitlist-overlay").classList.remove("hidden");
+      }
+      function closeWaitlist() {
+        document.getElementById("waitlist-overlay").classList.add("hidden");
+      }
+      async function submitWaitlist() {
+        localStorage.setItem("subvault_joined_waitlist", "true");
+        document.getElementById("wait-form").classList.add("hidden");
+        document.getElementById("wait-success").classList.remove("hidden");
+        setTimeout(closeWaitlist, 2000);
+        checkWaitlist();
+      }
+    </script>
+  </body>
 </html>
